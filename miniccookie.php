@@ -85,12 +85,26 @@ class MinicCookie extends Module
 				return false;
 		*/
 
+		$text = array();
+		foreach (Language::getLanguages(false) as $key => $lang) {
+			$text[$lang['id_lang']] = '<p>'.$this->l('We are using cookies to give you the best experience on our site. Cookies are files stored in your browser and are used by most websites to help personalise your web experience. By continuing to use our website, you are agreeing to our use of cookies.').'</p>';
+		}
+
+		$settings = array(
+			'autohide' => 1,
+			'time' => 15,
+			'link' => 0,
+			'bg_color' => 'rgb(255,255,255)',
+		);
+
 		if (!parent::install() || 
-			!$this->registerHook('displayHome') || 
+			!$this->registerHook('displayFooter') || 
 			!$this->registerHook('displayHeader') || 
 			!$this->registerHook('displayBackOfficeHeader') || 
 			!$this->registerHook('displayAdminHomeQuickLinks') || 
-			!Configuration::updateValue(strtoupper($this->name).'_START', 1))
+			!Configuration::updateValue(strtoupper($this->name).'_START', 1) || 
+			!Configuration::updateValue(strtoupper($this->name).'_TEXT', $text, true) ||
+			!Configuration::updateValue(strtoupper($this->name).'_SETTINGS', serialize($settings)))
 			return false;
 		return true;
 	}
@@ -101,7 +115,9 @@ class MinicCookie extends Module
 	public function uninstall()
 	{
 		if (!parent::uninstall() || 
-			!Configuration::deleteByName(strtoupper($this->name).'_START'))
+			!Configuration::deleteByName(strtoupper($this->name).'_START') || 
+			!Configuration::deleteByName(strtoupper($this->name).'_TEXT') || 
+			!Configuration::deleteByName(strtoupper($this->name).'_SETTINGS'))
 			return false;
 		return true;
 	}
@@ -111,8 +127,18 @@ class MinicCookie extends Module
 	 */	
 	public function getContent()
 	{
+		if(Tools::isSubmit('submitSettings'))
+			$this->updateSettings();
+
 		// Smarty for admin
 		$conf = Configuration::getMultiple(array(strtoupper($this->name).'_START', 'PS_SHOP_NAME', 'PS_SHOP_DOMAIN', 'PS_SHOP_EMAIL'));
+		$languages = Language::getLanguages(false);
+
+		$text = array();
+		foreach (Language::getLanguages(false) as $key => $lang) {
+			$text[$lang['id_lang']] = Configuration::get(strtoupper($this->name).'_TEXT', $lang['id_lang']);
+		}
+
 		$this->smarty->assign('minic', array(
 			'first_start' 	 => $conf[strtoupper($this->name).'_START'],
 
@@ -137,7 +163,21 @@ class MinicCookie extends Module
         		'today' 	=> date('Y-m-d'),
         		'module'	=> $this->name,
         		'context'	=> (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE') == 0) ? 1 : ($this->context->shop->getTotalShops() != 1) ? $this->context->shop->getContext() : 1,
-			)
+			),
+
+			'flags' => array(
+				'text' => $this->displayFlags($languages, $this->context->language->id, 'text', 'text', true),
+			),
+			'lang_active' => $this->context->language->id,
+
+			'langs' => $languages,
+			'lang_iso' => $this->context->language->iso_code, 
+			'css_dir' => _THEME_CSS_DIR_,
+            'ad' => dirname($_SERVER["PHP_SELF"]),
+            'base_uri' => __PS_BASE_URI__,
+
+            'text' => $text,
+            'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS'))
 		));
 	
 		// Change first start
@@ -147,6 +187,27 @@ class MinicCookie extends Module
 		$this->smarty->assign('response', $this->response);
 
 		return $this->display(__FILE__, 'views/templates/admin/miniccookie.tpl');
+	}
+
+	public function updateSettings()
+	{
+		$settings = array(
+			'autohide' => (int)Tools::getValue('autohide'),
+			'time' => (int)Tools::getValue('time'),
+			'link' => (Validate::isUrl(Tools::getValue('link'))) ? Tools::getValue('link') : 0,
+			'bg_color' => Tools::getValue('bg_color')
+		);
+
+		$text = Tools::getValue('text');
+		$texts = array();
+		foreach (Language::getLanguages(false) as $key => $lang) {
+			$texts[$lang['id_lang']] = $text[$lang['id_lang']];
+		}
+
+		Configuration::updateValue(strtoupper($this->name).'_SETTINGS', serialize($settings));
+		Configuration::updateValue(strtoupper($this->name).'_TEXT', $texts, true);
+
+		$this->setResponse($this->l('Updated successfull.'));
 	}
 
 	/**
@@ -178,10 +239,14 @@ class MinicCookie extends Module
 
 		// CSS
 		$this->context->controller->addCSS($this->_path.'views/css/elusive-icons/elusive-webfont.css');
+		$this->context->controller->addCSS($this->_path.'views/css/custom.css');
 		$this->context->controller->addCSS($this->_path.'views/css/admin.css');
 		// JS
 		$this->context->controller->addJquery();
-		$this->context->controller->addJS($this->_path.'views/js/admin.js');	
+		$this->context->controller->addJqueryPlugin('colorpicker');
+		$this->context->controller->addJS(__PS_BASE_URI__.'js/tiny_mce/tiny_mce.js');
+		$this->context->controller->addJS(__PS_BASE_URI__.'js/tinymce.inc.js');
+		$this->context->controller->addJS($this->_path.'views/js/admin.js');
 	}
 
 	/**
@@ -207,52 +272,22 @@ class MinicCookie extends Module
 	}
 
 	/**
- 	 * Top of pages hook
-	 */
-	public function hookDisplayTop($params)
-	{
-		return $this->hookDisplayHome($params);
-	}
-
-	/**
- 	 * Home page hook
-	 */
-	public function hookDisplayHome($params)
-	{
-		$this->context->smarty->assign('miniccookie', array(
-			'some_smarty_var' => 'some_data',
-			'some_smarty_array' => array(
-				'some_smarty_var' => 'some_data',
-				'some_smarty_var' => 'some_data'
-			),
-			'some_smarty_var' => 'some_data'
-		));
-
-		return $this->display(__FILE__, 'views/templates/hooks/home.tpl');
-	}
-
-	/**
- 	 * Left Column Hook
-	 */
-	public function hookDisplayRightColumn($params)
-	{
-		return $this->hookDisplayHome($params);
-	}
-
-	/**
- 	 * Right Column Hook
-	 */
-	public function hookDisplayLeftColumn($params)
-	{
-	 	return $this->hookDisplayHome($params);
-	}
-
-	/**
  	 * Footer hook
 	 */
 	public function hookDisplayFooter($params)
-	{
-		return $this->hookDisplayHome($params);
+	{		
+		if(isset($_COOKIE['miniccookie'])){
+			return;
+		}else{
+			$this->context->smarty->assign('miniccookie', array(
+				'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS')),
+				'text' => Configuration::get(strtoupper($this->name).'_TEXT', $this->context->language->id)
+			));
+		}
+
+		setcookie('miniccookie', 1, time()+60*60*24*356);
+
+		return $this->display(__FILE__, 'views/templates/hooks/home.tpl');
 	}
 }
 

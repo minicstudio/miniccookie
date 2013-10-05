@@ -18,15 +18,17 @@
             <a href="#feedback" id="open-feedback" class="minic-open">{l s='Feedback' mod='miniccookie'}</a>
 		</div>
 		<div id="banner"></div>
-		<div id="navigation">
+		<!-- <div id="navigation">
 			<a href="">{l s='Menu item' mod='miniccookie'}</a>
 			<a href="">{l s='Menu item' mod='miniccookie'}</a>
 			<a href="">{l s='Menu item' mod='miniccookie'}</a>
-		</div>
+		</div> -->
 	</div>
 	{if $response.message}
 		{include file="{$minic.admin_tpl_path}messages.tpl" id='global' text=$response.message class=$response.type}
 	{/if}
+	<!-- settings -->
+	{include file="{$minic.admin_tpl_path}settings.tpl"}
 	<!-- feedback -->
 	{include file="{$minic.admin_tpl_path}feedback.tpl"}
 	<!-- bug report -->

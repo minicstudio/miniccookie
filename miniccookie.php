@@ -276,9 +276,7 @@ class MinicCookie extends Module
 	 */
 	public function hookDisplayFooter($params)
 	{		
-		if(isset($_COOKIE['miniccookie'])){
-			return;
-		}else{
+		if(!isset($_COOKIE['miniccookie'])){
 			$this->context->smarty->assign('miniccookie', array(
 				'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS')),
 				'text' => Configuration::get(strtoupper($this->name).'_TEXT', $this->context->language->id)

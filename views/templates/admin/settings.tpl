@@ -40,6 +40,13 @@
                 <input type="text" id="more-info-link" name="link" value="{if $minic.settings.link}{$minic.settings.link}{elseif isset($smarty.post.link)}{$smarty.post.link}{/if}" placeholder="{l s='Paste the link here' mod='miniccookie'}">
             </div>
             <div class="switch-holder">
+                <label for="autohide">{l s='Always show' mod='instauro'}</label>
+                <div class="switch small {if $minic.settings.always}active{else}inactive{/if}">
+                    <input type="radio" id="always" class="" name="always"  value="{if $minic.settings.always}1{else}0{/if}" checked="true" />
+                </div>
+                <p style="clear:both;">{l s='Enable this if you want to show the information all the time' mod='miniccookie'}</p>
+            </div>
+            <div class="switch-holder">
                 <label for="autohide">{l s='Auto hide' mod='instauro'}</label>
                 <div class="switch small {if $minic.settings.autohide}active{else}inactive{/if}">
                     <input type="radio" id="autohide" class="" name="autohide"  value="{if $minic.settings.autohide}1{else}0{/if}" checked="true" />

@@ -87,11 +87,13 @@ class MinicCookie extends Module
 
 		$text = array();
 		foreach (Language::getLanguages(false) as $key => $lang) {
-			$text[$lang['id_lang']] = '<p>'.$this->l('We are using cookies to give you the best experience on our site. Cookies are files stored in your browser and are used by most websites to help personalise your web experience. By continuing to use our website, you are agreeing to our use of cookies.').'</p>';
+			$text[$lang['id_lang']] = '<p>'.$this->l('<h3>We are using cookies to give you the best experience on our site. Cookies are files stored in your browser and are used by most websites to help personalise your web experience.</h3>
+<h4>By continuing to use our website, you are agreeing to our use of cookies.</h4>').'</p>';
 		}
 
 		$settings = array(
 			'autohide' => 1,
+			'always' => 0,
 			'time' => 15,
 			'link' => 0,
 			'bg_color' => 'rgb(255,255,255)',
@@ -193,6 +195,7 @@ class MinicCookie extends Module
 	{
 		$settings = array(
 			'autohide' => (int)Tools::getValue('autohide'),
+			'always' => (int)Tools::getValue('always'),
 			'time' => (int)Tools::getValue('time'),
 			'link' => (Validate::isUrl(Tools::getValue('link'))) ? Tools::getValue('link') : 0,
 			'bg_color' => Tools::getValue('bg_color')
@@ -276,7 +279,9 @@ class MinicCookie extends Module
 	 */
 	public function hookDisplayFooter($params)
 	{		
-		if(!isset($_COOKIE['miniccookie'])){
+		$settings = unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS'));
+
+		if(!isset($_COOKIE['miniccookie']) || $settings['always'] == 1){
 			$this->context->smarty->assign('miniccookie', array(
 				'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS')),
 				'text' => Configuration::get(strtoupper($this->name).'_TEXT', $this->context->language->id)

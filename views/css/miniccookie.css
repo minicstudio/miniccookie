@@ -8,9 +8,8 @@
 	max-width: 60%;
 	text-align: right;
 }
-#miniccookie p{
+#miniccookie .content{
 	text-align: left;
-	line-height: 1;
 }
 #miniccookie .miniccookie-buttons{
 	font-size: 100%;

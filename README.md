@@ -1,16 +1,15 @@
-minicskeletonpro
+minic cookie
 ================
 
-Module skeleton for free minic modules
+A simple module to show the EU cookie law.
 
 
-###Installation
+###Features
 <ol>
-<li>Copy files</li>
-<li>Rename module php file</li>
-<li>Replace minicskeleton with new name</li>
-<li>Rename files (CSS, JS, TPL)</li>
-<li>Change Name, Description, Author</li>
-<li>Replace translation names in tpl files</li>
-<li>Change logo</li>
+<li>Changeable text with default Prestashop text editor</li>
+<li>Multilanguage support</li>
+<li>More info link</li>
+<li>Auto hide option</li>
+<li>Custom auto hide interval</li>
+<li>Custom background color</li>
 </ol>

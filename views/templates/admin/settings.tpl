@@ -37,7 +37,13 @@
             </div>
             <div class="input-holder">
                 <label for="more-info-link">{l s='More info link' mod='miniccookie'}</label>
-                <input type="text" id="more-info-link" name="link" value="{if $minic.settings.link}{$minic.settings.link}{elseif isset($smarty.post.link)}{$smarty.post.link}{/if}" placeholder="{l s='Paste the link here' mod='miniccookie'}">
+                {foreach from=$minic.langs item=lang}
+                <div id="link_{$lang.id_lang}" class="multilingual-holder" style="display: {if $lang.id_lang == $minic.lang_active}block{else}none{/if};">
+                    <input type="text" name="link[{$lang.id_lang}]" id="link_{$lang.iso_code}" value="{if isset($smarty.post.link.{$lang.id_lang})}{$smarty.post.link.{$lang.id_lang}}{elseif $minic.link}{$minic.link.{$lang.id_lang}}{/if}" placeholder="{l s='Paste the link here' mod='miniccookie'}">
+                </div>
+                {/foreach}
+                {$minic.flags.link}
+                <!-- <input type="text" id="more-info-link" name="link" value="{if $minic.settings.link}{$minic.settings.link}{elseif isset($smarty.post.link)}{$smarty.post.link}{/if}" placeholder="{l s='Paste the link here' mod='miniccookie'}"> -->
             </div>
             <div class="switch-holder">
                 <label for="autohide">{l s='Always show' mod='instauro'}</label>

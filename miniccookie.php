@@ -119,6 +119,7 @@ class MinicCookie extends Module
 		if (!parent::uninstall() || 
 			!Configuration::deleteByName(strtoupper($this->name).'_START') || 
 			!Configuration::deleteByName(strtoupper($this->name).'_TEXT') || 
+			!Configuration::deleteByName(strtoupper($this->name).'_LINK') || 
 			!Configuration::deleteByName(strtoupper($this->name).'_SETTINGS'))
 			return false;
 		return true;
@@ -139,6 +140,7 @@ class MinicCookie extends Module
 		$text = array();
 		foreach (Language::getLanguages(false) as $key => $lang) {
 			$text[$lang['id_lang']] = Configuration::get(strtoupper($this->name).'_TEXT', $lang['id_lang']);
+			$link[$lang['id_lang']] = Configuration::get(strtoupper($this->name).'_LINK', $lang['id_lang']);
 		}
 
 		$this->smarty->assign('minic', array(
@@ -168,7 +170,8 @@ class MinicCookie extends Module
 			),
 
 			'flags' => array(
-				'text' => $this->displayFlags($languages, $this->context->language->id, 'text', 'text', true),
+				'text' => $this->displayFlags($languages, $this->context->language->id, 'text¤link', 'text', true),
+				'link' => $this->displayFlags($languages, $this->context->language->id, 'text¤link', 'link', true),
 			),
 			'lang_active' => $this->context->language->id,
 
@@ -179,6 +182,7 @@ class MinicCookie extends Module
             'base_uri' => __PS_BASE_URI__,
 
             'text' => $text,
+            'link' => $link,
             'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS'))
 		));
 	
@@ -197,18 +201,24 @@ class MinicCookie extends Module
 			'autohide' => (int)Tools::getValue('autohide'),
 			'always' => (int)Tools::getValue('always'),
 			'time' => (int)Tools::getValue('time'),
-			'link' => (Validate::isUrl(Tools::getValue('link'))) ? Tools::getValue('link') : 0,
 			'bg_color' => Tools::getValue('bg_color')
 		);
 
 		$text = Tools::getValue('text');
+		$link = Tools::getValue('link');
 		$texts = array();
 		foreach (Language::getLanguages(false) as $key => $lang) {
 			$texts[$lang['id_lang']] = $text[$lang['id_lang']];
+			if($link[$lang['id_lang']] != '' && !Validate::isUrl($link[$lang['id_lang']])){
+				$this->setResponse($this->l('Invalid link!'), 'error');
+				return;
+			}
+			$links[$lang['id_lang']] = $link[$lang['id_lang']];
 		}
 
 		Configuration::updateValue(strtoupper($this->name).'_SETTINGS', serialize($settings));
 		Configuration::updateValue(strtoupper($this->name).'_TEXT', $texts, true);
+		Configuration::updateValue(strtoupper($this->name).'_LINK', $links, true);
 
 		$this->setResponse($this->l('Updated successfull.'));
 	}
@@ -284,7 +294,8 @@ class MinicCookie extends Module
 		if(!isset($_COOKIE['miniccookie']) || $settings['always'] == 1){
 			$this->context->smarty->assign('miniccookie', array(
 				'settings' => unserialize(Configuration::get(strtoupper($this->name).'_SETTINGS')),
-				'text' => Configuration::get(strtoupper($this->name).'_TEXT', $this->context->language->id)
+				'text' => Configuration::get(strtoupper($this->name).'_TEXT', $this->context->language->id),
+				'link' => Configuration::get(strtoupper($this->name).'_LINK', $this->context->language->id)
 			));
 		}
 

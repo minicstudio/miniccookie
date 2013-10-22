@@ -1,0 +1,5 @@
+v1.1.0 - 2013.10.22
+- added multilanguage for links
+
+v1.0.0 - 2013.10.21
+- release
